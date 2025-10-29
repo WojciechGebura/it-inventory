@@ -1,0 +1,37 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block search %}
+  {% if cl.search_fields %}
+    <form id="changelist-search" method="get">
+      <div>
+        <label for="searchbar">
+          <span class="visually-hidden">{% translate 'Search' %}</span>
+        </label>
+        <input type="text" size="40" name="q" value="{{ cl.query }}" id="searchbar" autofocus>
+        <input type="submit" value="{% translate 'Search' %}">
+      </div>
+
+      <div style="margin-top:.5rem;">
+        <label for="company-select" style="margin-right:.5rem;">Firma:</label>
+        <select name="assigned_to__company__id__exact" id="company-select" onchange="this.form.submit()">
+          <option value="">— wszystkie —</option>
+          {% for c in company_choices %}
+            <option value="{{ c.id }}"
+              {% if selected_company|stringformat:"s" == c.id|stringformat:"s" %}selected{% endif %}>
+              {{ c.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {# zostaw inne GET-y, ale nie duplikuj q i naszego filtra #}
+      {% for key, value in cl.params.items %}
+        {% if key != 'q' and key != 'assigned_to__company__id__exact' %}
+          <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+      {% endfor %}
+    </form>
+  {% endif %}
+{% endblock %}
+

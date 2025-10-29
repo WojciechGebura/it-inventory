@@ -1,0 +1,7 @@
+# Wykluczenie plikw, ktore nie powinny trafic na GitHuba
+*.pyc
+__pycache__/
+venv/
+env/
+db.sqlite3
+.DS_Store
