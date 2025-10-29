@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Raport: Spis komputerów</title>
+</head>
+<body>
+    <h1>Raport: Spis komputerów</h1>
+    <form method="get">
+        <label for="company">Firma:</label>
+        <select id="company" name="company">
+            <option value="">-- wybierz firmę --</option>
+            {% for c in companies %}
+                <option value="{{ c.id }}" {% if company and c.id == company.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Pokaż</button>
+    </form>
+
+    {% if company %}
+        <h2>Firma: {{ company.name }}</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Nazwa komputera</th>
+                    <th>Model</th>
+                    <th>Brand</th>
+                    <th>Service Tag</th>
+                    <th>Przypisany pracownik</th>
+                    <th>Akcje serwisowe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comp in computers %}
+                <tr>
+                    <td>{{ comp.name }}</td>
+                    <td>{{ comp.model }}</td>
+                    <td>{{ comp.brand }}</td>
+                    <td>{{ comp.service_tag }}</td>
+                    <td>
+                        {% if comp.assigned_to %}
+                            {{ comp.assigned_to.first_name }} {{ comp.assigned_to.last_name }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if comp.service_actions.all %}
+                            <ul>
+                                {% for action in comp.service_actions.all %}
+                                    <li>{{ action.title }} ({{ action.action_date }}) - {{ action.status }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            Brak
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% elif company_id %}
+        <p>Nie znaleziono firmy.</p>
+    {% endif %}
+</body>
+</html>

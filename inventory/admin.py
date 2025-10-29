@@ -1,6 +1,8 @@
 from django.contrib import admin
-from .models import Company, Employee, Computer, ServiceAction
+from .models import Company, Employee, Computer, ServiceAction, ReportProxy
 from django.contrib.admin import SimpleListFilter
+from django.urls import path
+from django.shortcuts import render
 
 # zmiana nagłówków
 admin.site.site_header = "eSupport"
@@ -89,7 +91,7 @@ class ComputerAdmin(admin.ModelAdmin):
         return super().changelist_view(request, extra_context=extra_context)
 
     def company_name(self, obj):
-        return obj.assigned_to.company.name if obj.assigned_to and obj.assigned_to.company else "-"
+        return obj.company.name if obj.company else "-"
     company_name.short_description = "Firma"
 
 
@@ -127,4 +129,36 @@ class ServiceActionAdmin(admin.ModelAdmin):
         extra_context["selected_company"] = request.GET.get("computer__assigned_to__company__id__exact", "")
         return super().changelist_view(request, extra_context=extra_context)
 
+@admin.register(ReportProxy)
+class ComputerReportAdmin(admin.ModelAdmin):
+    change_list_template = "admin/inventory/reports_changelist.html"
+    # Ukryj przyciski dodaj/usuń/edycja
+    def has_add_permission(self, request): return False
+    def has_change_permission(self, request, obj=None): return True
+    def has_delete_permission(self, request, obj=None): return False
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('raport-komputerow/', self.admin_site.admin_view(self.computers_report), name='inventory_computers_report'),
+        ]
+        return custom_urls + urls
+
+    def changelist_view(self, request, extra_context=None):
+        # domyślna podstrona zakładki Raporty
+        return render(request, "admin/inventory/reports_changelist.html")
+
+    def computers_report(self, request):
+        company_id = request.GET.get("company")
+        company = None
+        computers = []
+        if company_id:
+            company = Company.objects.filter(pk=company_id).first()
+            if company:
+                computers = Computer.objects.filter(company=company).select_related("assigned_to").prefetch_related("service_actions")
+        companies = Company.objects.all()
+        return render(request, "admin/inventory/computers_report.html", {
+            "company": company,
+            "companies": companies,
+            "computers": computers,
+        })

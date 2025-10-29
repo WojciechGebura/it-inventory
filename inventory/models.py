@@ -20,6 +20,7 @@ class Employee(models.Model):
     last_name = models.CharField(max_length=120)
     email = models.EmailField(blank=True)
     position = models.CharField(max_length=120, blank=True)
+    phone_number = models.CharField(max_length=32, blank=True)  # <-- DODANE POLE
 
     class Meta:
         unique_together = ("company", "email")
@@ -27,7 +28,7 @@ class Employee(models.Model):
         verbose_name_plural = "Pracownicy"
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.company.name})"
+        return f"{self.first_name} {self.last_name}"
 
 
 class Computer(models.Model):
@@ -43,6 +44,8 @@ class Computer(models.Model):
     assigned_to = models.ForeignKey("Employee", on_delete=models.SET_NULL, null=True, blank=True, related_name="computers")
     purchase_date = models.DateField(null=True, blank=True)
     warranty_end = models.DateField(null=True, blank=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="computers", null=True, blank=True)
+    assigned_to = models.ForeignKey("Employee", on_delete=models.SET_NULL, null=True, blank=True, related_name="computers")
 
     class Meta:
         verbose_name = "Komputer"
@@ -68,3 +71,8 @@ class ServiceAction(models.Model):
     def __str__(self):
         return f"{self.title} @ {self.computer}"
 
+class ComputerReport(Computer):
+    class Meta:
+        proxy = True
+        verbose_name = "Raport komputerów"
+        verbose_name_plural = "Raporty komputerów"
